@@ -1,0 +1,79 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Disease Recognition</title>
+    <style>
+        .preview-container {
+            width: 300px; /* 容器宽度 */
+            height: 300px; /* 容器高度 */
+            overflow: hidden; /* 隐藏超出容器的内容 */
+        }
+        .preview-image {
+            width: 100%; /* 图片宽度等于容器宽度 */
+            height: auto; /* 图片高度自动，保持比例 */
+            object-fit: cover; /* 保持图片比例填充容器 */
+        }
+    </style>
+</head>
+<body>
+    <h1>病虫害识别系统</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="fileInput" name="file" accept="image/*">
+        <div class="preview-container">
+            <img id="imagePreview" class="preview-image" src="#" alt="照片预览">
+        </div>
+        <p id="fileName"></p>
+        <input type="button" value="上传照片" onclick="uploadFile()">
+    </form>
+    <div id="result"></div>
+
+    <script>
+        function previewImage() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            const imagePreview = document.getElementById('imagePreview');
+            const fileName = document.getElementById('fileName');
+
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onloadend = function() {
+                    imagePreview.src = reader.result;
+                    fileName.textContent = file.name;
+                }
+
+                if (file) {
+                    reader.readAsDataURL(file);
+                } else {
+                    imagePreview.src = "";
+                }
+            }
+        }
+
+        function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('result').textContent = `Recognized Disease: ${data.disease_info.disease_name}`;
+                } else {
+                    document.getElementById('result').textContent = `Error: ${data.error}`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('result').textContent = 'Upload failed';
+            });
+        }
+
+        document.getElementById('fileInput').addEventListener('change', previewImage, false);
+    </script>
+</body>
+</html>
